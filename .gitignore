@@ -123,3 +123,4 @@ data
 /environment/encryption/.pyarmor_config
 *.macalog
 *.pkl
+/tournament/result

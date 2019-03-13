@@ -19,7 +19,7 @@ There is no limitation on agents' structure. You can write rule-based algorithms
 ```bash
 pip install numpy pygame
 git clone https://github.com/CETC-TFAI/MaCA.git
-cd MACA
+cd MaCA
 export PYTHONPATH=$(pwd)/environment:$PYTHONPATH
 ```
 ### Run a combat between two agents
