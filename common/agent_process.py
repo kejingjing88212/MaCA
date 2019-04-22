@@ -12,8 +12,8 @@ import importlib
 import time
 from multiprocessing import Process, Queue
 
-AGENT_INIT_TIMEOUT = 30
-AGENT_RESP_TIMEOUT = 10
+AGENT_INIT_TIMEOUT = 60
+AGENT_RESP_TIMEOUT = 60
 
 
 class AgentProc(Process):

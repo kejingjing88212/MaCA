@@ -18,6 +18,10 @@ import pandas as pd
 from interface import Environment
 from common.agent_process import AgentCtrl
 
+SCORE_WIN = 3
+SCORE_DRAW = 1
+SCORE_LOSS = 0
+
 
 def run(agent1_name, agent2_name, map_name, round_num, max_step, random_pos=False):
     '''
@@ -164,11 +168,11 @@ if __name__ == "__main__":
     crash_rounds_per_agent = [0] * len(agent_list)
     timeout_rounds_per_agent = [0] * len(agent_list)
     launch_failed_rounds_per_agent = [0] * len(agent_list)
-    win_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)))
-    draw_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)))
-    crash_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)))
-    timeout_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)))
-    launch_failed_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)))
+    win_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)), dtype='int32')
+    draw_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)), dtype='int32')
+    crash_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)), dtype='int32')
+    timeout_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)), dtype='int32')
+    launch_failed_rounds_against_each_other = np.zeros((len(agent_list), len(agent_list)), dtype='int32')
 
     for x in range(len(agent_list)):
         for y in range(len(agent_list)):
@@ -190,8 +194,8 @@ if __name__ == "__main__":
             crash_rounds_per_agent[y] += agent2_crash_rounds
             timeout_rounds_per_agent[x] += agent1_timeout_rounds
             timeout_rounds_per_agent[y] += agent1_timeout_rounds
-            launch_failed_rounds_per_agent[x] = agent1_launch_failure_rounds
-            launch_failed_rounds_per_agent[y] = agent2_launch_failure_rounds
+            launch_failed_rounds_per_agent[x] += agent1_launch_failure_rounds
+            launch_failed_rounds_per_agent[y] += agent2_launch_failure_rounds
             win_rounds_against_each_other[x][y] += agent1_win_rounds
             win_rounds_against_each_other[y][x] += agent2_win_rounds
             draw_rounds_against_each_other[x][y] += draw_rounds
@@ -230,13 +234,15 @@ if __name__ == "__main__":
             launch_failure_detail_table.index = agent_list
             launch_failure_detail_table.to_html('tournament/result/launch_failure_detail.html')
             # summary
-            summary_table = pd.DataFrame(columns=['agent', 'win_rate', 'total_rounds', 'win_rounds', 'draw_rounds', 'loss_rounds', 'crash_rounds', 'timeout_rounds', 'launch_failure_rounds'])
+            summary_table = pd.DataFrame(columns=['agent', 'score', 'win_rate', 'total_rounds', 'win_rounds', 'draw_rounds', 'loss_rounds', 'crash_rounds', 'timeout_rounds', 'launch_failure_rounds'])
             for z in range(len(agent_list)):
                 if total_rounds_per_agent[z] == 0:
                     win_rate = 0
                 else:
                     win_rate = win_rounds_per_agent[z] / total_rounds_per_agent[z]
+                score = SCORE_WIN * win_rounds_per_agent[z] + SCORE_DRAW * draw_rounds_per_agent[z] + SCORE_LOSS * (total_rounds_per_agent[z] - win_rounds_per_agent[z] - draw_rounds_per_agent[z])
                 summary_table = summary_table.append(pd.DataFrame({'agent': [agent_list[z]],
+                                                                   'score': [score],
                                                                    'win_rate': [win_rate],
                                                                    'total_rounds': [total_rounds_per_agent[z]],
                                                                    'win_rounds': [win_rounds_per_agent[z]],
@@ -245,7 +251,7 @@ if __name__ == "__main__":
                                                                    'crash_rounds': [crash_rounds_per_agent[z]],
                                                                    'timeout_rounds': [timeout_rounds_per_agent[z]],
                                                                    'launch_failure_rounds': [launch_failed_rounds_per_agent[z]]}))
-            summary_table = summary_table.sort_values(by='win_rate', ascending=False)
+            summary_table = summary_table.sort_values(by='score', ascending=False)
             summary_table.to_html('tournament/result/summary.html', index=False)
     print('tournament completed!, result:')
     print(summary_table)
